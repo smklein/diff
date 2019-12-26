@@ -1,1 +1,1 @@
-./bazel-bin/main/hello-world
+./bazel-bin/main/diff

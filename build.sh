@@ -1,1 +1,1 @@
-bazel build //main:hello-world
+bazel build //main:diff
