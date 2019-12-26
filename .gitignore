@@ -1,6 +1,9 @@
 # Bazel
 bazel-*
 
+# vim
+*.swp
+
 # Prerequisites
 *.d
 
