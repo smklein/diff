@@ -1,9 +1,8 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary")
-
 cc_library(
     name = "libdiff",
     srcs = ["diff.cc"],
     hdrs = ["diff.h"],
+    copts = [ "-std=c++17" ],
 )
 
 cc_binary(
@@ -12,4 +11,5 @@ cc_binary(
     deps = [
       ":libdiff",
     ],
+    copts = [ "-std=c++17" ],
 )

@@ -9,6 +9,7 @@
 void PrintDiff(const std::string& a, const std::string& b) {
   auto path = Diff(a, b);
 
+  std::cout << "Diff from " << a << " to " << b << ":" << std::endl;
   for (auto [x, y] : path) {
     std::cout << "(" << x << ", " << y << ")" << std::endl;
   }

@@ -2,4 +2,6 @@
 #include <tuple>
 #include <vector>
 
-std::vector<std::tuple<int, int>> Diff(const std::string& a, const std::string& b);
+using Coordinate = std::tuple<int, int>;
+
+std::vector<Coordinate> Diff(const std::string& a, const std::string& b);
