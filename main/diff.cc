@@ -1,4 +1,6 @@
+#include <algorithm>
 #include <optional>
+#include <queue>
 #include <string>
 #include <tuple>
 #include <unordered_map>
@@ -6,38 +8,103 @@
 
 #include "diff.h"
 
-struct Node {
-  Coordinate c;
-  std::optional<Coordinate> parent;
+struct CoordinateHash {
+  std::size_t operator()(Coordinate const& c) const noexcept {
+    auto [x, y] = c;
+    return std::hash<int>{}(x) ^ (std::hash<int>{}(y << 1));
+  }
 };
 
-std::vector<Coordinate> Diff(const std::string& a, const std::string& b) {
-  // +X: Deletion of character from A.
-  // +Y: Insertion of character from B.
-  std::vector<Coordinate> result;
+// TODO: Decouple coordinate system, helpers, from walking class.
+// TODO: Decouple from string.
+// TODO: Customize walking order preferences.
+class PathWalker {
+public:
+  PathWalker(const std::string& lhs, const std::string& rhs) : lhs_(lhs), rhs_(rhs) {
+    Coordinate origin(0, 0);
+    paths_[origin] = std::nullopt;
+    working_set_.push(origin);
+  }
 
-  //       PATHS: UNORDERED_MAP<Coordinate, Node>
-  // WORKING SET: VEC<Coordinate>
-  //    TERMINUS: (len(a), len(b))
-  //
-  // Insert { (0, 0), nullopt } Node into PATHS.
-  // Insert (0, 0) into WORKING SET.
-  //
-  // InsertAndCheck(Parent = C, New = C'):
-  //    If C' not in PATHS:
-  //      Insert <C', C> into PATHS.
-  //      Insert C' into WORKING SET.
-  //      If C' == TERMINUS:
-  //        Return Reverse(Enumerate(PATHS(C')))
-  //
-  // Loop:
-  //  For C : Coords in WORKING SET:
-  //    Create new Coord C' = TakeFreeDiagonals(C(x + 1), C(y))
-  //    InsertAndCheck(C, C')
-  //    Create new Coord C'' = TakeFreeDiagonals(C(x), C(y + 1))
-  //    InsertAndCheck(C, C'')
+  std::vector<Coordinate> Walk() {
+    while (!working_set_.empty()) {
+      auto coordinate = working_set_.front();
+      working_set_.pop();
+      auto [x, y] = coordinate;
 
-  return result;
+      if (x < CapacityX()) {
+        auto cx = TakeFreeDiagonals(Coordinate(x + 1, y));
+        InsertNewPath(coordinate, cx);
+        if (cx == Terminus()) {
+          return Enumerate();
+        }
+      }
+
+      if (y < CapacityY()) {
+        auto cy = TakeFreeDiagonals(Coordinate(x, y + 1));
+        InsertNewPath(coordinate, cy);
+        if (cy == Terminus()) {
+          return Enumerate();
+        }
+      }
+    }
+    return std::vector<Coordinate>();
+  }
+
+private:
+  // Enumerates the full path from the Terminus to the origin.
+  //
+  // Precondition: Terminus in |paths_|.
+  std::vector<Coordinate> Enumerate() const {
+    std::vector<Coordinate> result;
+    auto coordinate = Terminus();
+    while (true) {
+      result.push_back(coordinate);
+      auto maybe_coordinate = paths_.at(coordinate);
+      if (maybe_coordinate == std::nullopt) {
+        break;
+      }
+      coordinate = *maybe_coordinate;
+    }
+    std::reverse(result.begin(), result.end());
+    return result;
+  }
+
+  Coordinate TakeFreeDiagonals(Coordinate source) const {
+    Coordinate result = source;
+    auto [x, y] = result;
+    while (x < CapacityX() && y < CapacityY() && lhs_[x] == rhs_[y]) {
+      result = Coordinate(++x, ++y);
+    }
+    return result;
+  }
+
+  // Inserts a new path from |parent| to |child|.
+  // No-op if a path to |child| already exists.
+  void InsertNewPath(Coordinate parent, Coordinate child) {
+    if (paths_.find(child) != paths_.end()) {
+      return;
+    }
+    paths_[child] = parent;
+    working_set_.push(child);
+  }
+
+  const int CapacityX() const { return lhs_.length(); }
+  const int CapacityY() const { return rhs_.length(); }
+
+  const Coordinate Terminus() const {
+    return Coordinate(CapacityX(), CapacityY());
+  }
+
+  std::unordered_map<Coordinate, std::optional<Coordinate>, CoordinateHash> paths_;
+  std::queue<Coordinate> working_set_;
+  const std::string& lhs_;
+  const std::string& rhs_;
+};
+
+std::vector<Coordinate> Diff(const std::string& lhs, const std::string& rhs) {
+  PathWalker path_walker(lhs, rhs);
+  return path_walker.Walk();
 }
 
 // TODO: Add gtest
