@@ -1,22 +1,11 @@
-#include <ctime>
 #include <string>
-#include <iostream>
+#include <tuple>
+#include <vector>
 
-std::string get_greet(const std::string& who) {
-  return "Hello " + who;
-}
+std::vector<std::tuple<int, int>> Diff(const std::string& a, const std::string& b) {
+  std::vector<std::tuple<int, int>> result;
 
-void print_localtime() {
-  std::time_t result = std::time(nullptr);
-  std::cout << std::asctime(std::localtime(&result));
-}
+  // TODO
 
-int main(int argc, char** argv) {
-  std::string who = "world";
-  if (argc > 1) {
-    who = argv[1];
-  }
-  std::cout << get_greet(who) << std::endl;
-  print_localtime();
-  return 0;
+  return result;
 }
