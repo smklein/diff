@@ -44,45 +44,47 @@ std::string Colorize(Color c, std::string input) {
 void PrintDiff(const std::string& a, const std::string& b) {
   auto path = Diff(a, b);
 
-  std::cout << "Diff from " << a << " to " << b << ":" << std::endl;
+  std::cout << "Diff from [" << a << "] to [" << b << "]:" << std::endl;
 
   // Coordinates:
-  for (auto [x, y] : path) {
-    std::cout << "(" << x << ", " << y << ")" << std::endl;
-  }
+//  for (auto [x, y] : path) {
+//    std::cout << "(" << x << ", " << y << ")" << std::endl;
+//  }
 
   // Prettier diff:
   int x_prev = 0;
   int y_prev = 0;
   for (auto [x, y] : path) {
     while (x_prev < x && y_prev < y) {
-      std::cout << "  (Both) X: " << x_prev << " --> " << x << std::endl;
-      std::cout << "  (Both) Y: " << y_prev << " --> " << y << std::endl;
-//      assert(a[x_prev] == b[y_prev]);
+      assert(a[x_prev] == b[y_prev]);
       std::string output;
       output += a[x_prev];
-      std::cout << output << std::endl;
+      std::cout << Colorize(Color::White, output);
       x_prev++;
       y_prev++;
     }
     while (x_prev < x) {
-      std::cout << "  X: " << x_prev << " --> " << x << std::endl;
       std::string output;
-      output += "-";
       output += a[x_prev++];
-      std::cout << output << std::endl;
+      std::cout << Colorize(Color::Red, output);
     }
     while (y_prev < y) {
-      std::cout << "  Y: " << y_prev << " --> " << y << std::endl;
       std::string output;
-      output += "+";
       output += b[y_prev++];
-      std::cout << output << std::endl;
+      std::cout << Colorize(Color::Green, output);
     }
   }
+  std::cout << std::endl;
 }
 
 int main(int argc, char** argv) {
   PrintDiff("ABCABBA", "CBABAC");
+  PrintDiff(
+"This text has\n" \
+"multiple lines,\n" \
+"isn't that neat?",
+"This text has\n" \
+"so many lines,\n" \
+"isn't that neat?");
   return 0;
 }

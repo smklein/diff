@@ -24,6 +24,8 @@ public:
     Coordinate origin(0, 0);
     paths_[origin] = std::nullopt;
     working_set_.push(origin);
+    auto d_origin = TakeFreeDiagonals(origin);
+    InsertNewPath(origin, d_origin, d_origin);
   }
 
   std::vector<Coordinate> Walk() {
@@ -33,22 +35,24 @@ public:
       auto [x, y] = coordinate;
 
       if (x < CapacityX()) {
-        auto cx = TakeFreeDiagonals(Coordinate(x + 1, y));
-        InsertNewPath(coordinate, cx);
-        if (cx == Terminus()) {
-          return Enumerate();
+        auto cx = Coordinate(x + 1, y);
+        auto dcx = TakeFreeDiagonals(cx);
+        InsertNewPath(coordinate, cx, dcx);
+        if (dcx == Terminus()) {
+          break;
         }
       }
 
       if (y < CapacityY()) {
-        auto cy = TakeFreeDiagonals(Coordinate(x, y + 1));
-        InsertNewPath(coordinate, cy);
-        if (cy == Terminus()) {
-          return Enumerate();
+        auto cy = Coordinate(x, y + 1);
+        auto dcy = TakeFreeDiagonals(cy);
+        InsertNewPath(coordinate, cy, dcy);
+        if (dcy == Terminus()) {
+          break;
         }
       }
     }
-    return std::vector<Coordinate>();
+    return Enumerate();
   }
 
 private:
@@ -81,12 +85,18 @@ private:
 
   // Inserts a new path from |parent| to |child|.
   // No-op if a path to |child| already exists.
-  void InsertNewPath(Coordinate parent, Coordinate child) {
-    if (paths_.find(child) != paths_.end()) {
+  void InsertNewPath(Coordinate parent, Coordinate child, Coordinate diagonal) {
+    if (paths_.find(child) != paths_.end() ||
+        paths_.find(diagonal) != paths_.end()) {
       return;
     }
-    paths_[child] = parent;
-    working_set_.push(child);
+
+    if (child != diagonal) {
+      paths_[child] = parent;
+      parent = child;
+    }
+    paths_[diagonal] = parent;
+    working_set_.push(diagonal);
   }
 
   const int CapacityX() const { return lhs_.length(); }
