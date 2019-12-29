@@ -4,7 +4,7 @@
 #include <tuple>
 #include <vector>
 
-#include "diff.h"
+#include "lib/diff.h"
 
 #define RESET   "\033[0m"
 #define BLACK   "\033[30m"
@@ -50,9 +50,9 @@ void PrintDiff(const std::string& a, const std::string& b) {
   std::cout << Colorize(Color::Yellow, b) << std::endl;
 
   // Coordinates:
-//  for (auto [x, y] : path) {
-//    std::cout << "(" << x << ", " << y << ")" << std::endl;
-//  }
+  for (auto [x, y] : path) {
+    std::cout << "(" << x << ", " << y << ")" << std::endl;
+  }
 
   // Prettier diff:
   int x_prev = 0;
