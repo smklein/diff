@@ -44,7 +44,10 @@ std::string Colorize(Color c, std::string input) {
 void PrintDiff(const std::string& a, const std::string& b) {
   auto path = Diff(a, b);
 
-  std::cout << "Diff from [" << a << "] to [" << b << "]:" << std::endl;
+  std::cout << ">> Diff from: " << std::endl;
+  std::cout << Colorize(Color::Yellow, a) << std::endl;
+  std::cout << ">> to: " << std::endl;
+  std::cout << Colorize(Color::Yellow, b) << std::endl;
 
   // Coordinates:
 //  for (auto [x, y] : path) {
