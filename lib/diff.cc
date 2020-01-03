@@ -1,3 +1,5 @@
+#include <assert.h>
+
 #include <algorithm>
 #include <optional>
 #include <queue>
@@ -25,9 +27,15 @@ public:
     paths_[origin] = std::nullopt;
     working_set_.push(origin);
     auto d_origin = TakeFreeDiagonals(origin);
-    InsertNewPath(origin, d_origin, d_origin);
+    if (d_origin != origin) {
+      InsertNewPath(origin, d_origin);
+    }
   }
 
+  // The output is a sequence of coordinates (X, Y), where:
+  //   "+X" implies deletion of a character from the input string A.
+  //   "+Y" implies insertion of a character from the input string B.
+  //   "+X, +Y" implies no diff between the two strings.
   std::vector<Coordinate> Walk() {
     while (!working_set_.empty()) {
       auto coordinate = working_set_.front();
@@ -36,8 +44,11 @@ public:
 
       if (x < CapacityX()) {
         auto cx = Coordinate(x + 1, y);
+        InsertNewPath(coordinate, cx);
         auto dcx = TakeFreeDiagonals(cx);
-        InsertNewPath(coordinate, cx, dcx);
+        if (cx != dcx) {
+          InsertNewPath(cx, dcx);
+        }
         if (dcx == Terminus()) {
           break;
         }
@@ -45,8 +56,11 @@ public:
 
       if (y < CapacityY()) {
         auto cy = Coordinate(x, y + 1);
+        InsertNewPath(coordinate, cy);
         auto dcy = TakeFreeDiagonals(cy);
-        InsertNewPath(coordinate, cy, dcy);
+        if (cy != dcy) {
+          InsertNewPath(cy, dcy);
+        }
         if (dcy == Terminus()) {
           break;
         }
@@ -85,18 +99,40 @@ private:
 
   // Inserts a new path from |parent| to |child|.
   // No-op if a path to |child| already exists.
-  void InsertNewPath(Coordinate parent, Coordinate child, Coordinate diagonal) {
-    if (paths_.find(child) != paths_.end() ||
-        paths_.find(diagonal) != paths_.end()) {
+  void InsertNewPath(Coordinate parent, Coordinate child) {
+    if (paths_.find(child) != paths_.end()) {
       return;
     }
 
-    if (child != diagonal) {
+    auto grandparent = paths_[parent];
+    if (grandparent != std::nullopt &&
+        TransformationType(*grandparent, parent) == TransformationType(parent, child)) {
+      // Coalesce multiple operations of the same type (multi-add, multi-delete).
+      paths_[child] = *grandparent;
+    } else {
       paths_[child] = parent;
-      parent = child;
     }
-    paths_[diagonal] = parent;
-    working_set_.push(diagonal);
+    working_set_.push(child);
+  }
+
+  // Compares a parent and child coordinate, returning the type of the traversal.
+  //
+  // Precondition: A path must exist from |parent| to |child|, such that a single
+  // repeated move (addition, subtraction, or no diff) can transform the parent
+  // coordinate to the child coordinate.
+  static DiffAction TransformationType(Coordinate parent, Coordinate child) {
+    auto [x1, y1] = parent;
+    auto [x2, y2] = child;
+    if (x1 != x2 && y1 != y2) {
+      assert(x2 - x1 == y2 - y1);
+      return DiffAction::Same;
+    } else if (x1 != x2) {
+      assert(y1 == y2);
+      return DiffAction::Remove;
+    } else {
+      assert(x1 == x2);
+      return DiffAction::Add;
+    }
   }
 
   const int CapacityX() const { return lhs_.length(); }
@@ -106,16 +142,52 @@ private:
     return Coordinate(CapacityX(), CapacityY());
   }
 
+  // A mapping of "coordinate" --> "parent coordinate" used to reach this spot.
+  // Optional for the case of the root coordinate (0, 0), which has no parent.
   std::unordered_map<Coordinate, std::optional<Coordinate>, CoordinateHash> paths_;
   std::queue<Coordinate> working_set_;
   const std::string& lhs_;
   const std::string& rhs_;
 };
 
-std::vector<Coordinate> Diff(const std::string& lhs, const std::string& rhs) {
+std::vector<DiffResult> Diff(const std::string& lhs, const std::string& rhs) {
   PathWalker path_walker(lhs, rhs);
-  return path_walker.Walk();
-}
+  auto coords = path_walker.Walk();
 
-// TODO: Add gtest
-// TODO: create some tests
+  std::vector<DiffResult> result;
+  int x_prev = 0;
+  int y_prev = 0;
+  for (auto [x, y] : coords) {
+    std::string output;
+    // Case 1: No diff.
+    while (x_prev < x && y_prev < y) {
+      output += lhs[x_prev];
+      x_prev++;
+      y_prev++;
+    }
+    if (output != "") {
+      result.push_back({ DiffAction::Same, output });
+      output = "";
+    }
+
+    // Case 2: Deletion.
+    while (x_prev < x) {
+      output += lhs[x_prev++];
+    }
+    if (output != "") {
+      result.push_back({ DiffAction::Remove, output });
+      output = "";
+    }
+
+    // Case 3: Insertion.
+    while (y_prev < y) {
+      output += rhs[y_prev++];
+    }
+    if (output != "") {
+      result.push_back({ DiffAction::Add, output });
+      output = "";
+    }
+  }
+
+  return result;
+}

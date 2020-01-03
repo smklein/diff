@@ -4,6 +4,21 @@
 
 using Coordinate = std::tuple<int, int>;
 
+enum class DiffAction {
+  Add,
+  Remove,
+  Same,
+};
+
+struct DiffResult {
+  DiffAction action;
+  std::string string;
+};
+
+bool operator==(const DiffResult& lhs, const DiffResult& rhs) {
+  return lhs.action == rhs.action && lhs.string == rhs.string;
+}
+
 // Returns a sequence of coordinates describing the diff between two strings.
 //
 // The output is a sequence of coordinates (X, Y), where:
@@ -14,4 +29,4 @@ using Coordinate = std::tuple<int, int>;
 // TODO(smklein): Tests!
 // TODO(smklein): Generalize to non-strings.
 // TODO(smklein): More strongly-typed output.
-std::vector<Coordinate> Diff(const std::string& a, const std::string& b);
+std::vector<DiffResult> Diff(const std::string& a, const std::string& b);

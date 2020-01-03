@@ -1,34 +1,88 @@
 #include "diff.h"
 #include "gtest/gtest.h"
 
-TEST(DiffTest, OnePlusOne) {
-  EXPECT_EQ(2, 1 + 1);
-}
-
 TEST(DiffTest, NullComparison) {
-  EXPECT_EQ({}, Diff("", ""));
+  auto result = Diff("", "");
+  EXPECT_TRUE(result.empty());
 }
 
 TEST(DiffTest, IdenticalStrings) {
-  EXPECT_EQ({ Same("ABC") }, Diff("ABC", "ABC"));
+  std::vector<DiffResult> result = {
+    {
+      DiffAction::Same,
+      "ABC",
+    },
+  };
+
+  EXPECT_EQ(result, Diff("ABC", "ABC"));
 }
 
 TEST(DiffTest, DistinctStrings) {
-  EXPECT_EQ({ Remove("ABC"), Add("DEF") }, Diff("ABC", "DEF"));
+  std::vector<DiffResult> result = {
+    {
+      DiffAction::Remove,
+      "ABC",
+    },
+    {
+      DiffAction::Add,
+      "DEF",
+    },
+  };
+  EXPECT_EQ(result, Diff("ABC", "DEF"));
 }
 
 TEST(DiffTest, PrefixInsertion) {
-  EXPECT_EQ({ Add("ABC"), Same("DEF") }, Diff("DEF", "ABCDEF"));
+  std::vector<DiffResult> result = {
+    {
+      DiffAction::Add,
+      "ABC",
+    },
+    {
+      DiffAction::Same,
+      "DEF",
+    },
+  };
+  EXPECT_EQ(result, Diff("DEF", "ABCDEF"));
 }
 
 TEST(DiffTest, SuffixInsertion) {
-  EXPECT_EQ({ Same("ABC"), Add("DEF") }, Diff("ABC", "ABCDEF"));
+  std::vector<DiffResult> result = {
+    {
+      DiffAction::Same,
+      "ABC",
+    },
+    {
+      DiffAction::Add,
+      "DEF",
+    },
+  };
+  EXPECT_EQ(result, Diff("ABC", "ABCDEF"));
 }
 
 TEST(DiffTest, PrefixDeletion) {
-  EXPECT_EQ({ Remove("ABC"), Same("DEF") }, Diff("ABCDEF", "DEF"));
+  std::vector<DiffResult> result = {
+    {
+      DiffAction::Remove,
+      "ABC",
+    },
+    {
+      DiffAction::Same,
+      "DEF",
+    },
+  };
+  EXPECT_EQ(result, Diff("ABCDEF", "DEF"));
 }
 
 TEST(DiffTest, SuffixDeletion) {
-  EXPECT_EQ({ Same("ABC"), Remove("DEF") }, Diff("ABCDEF", "ABC"));
+  std::vector<DiffResult> result = {
+    {
+      DiffAction::Same,
+      "ABC",
+    },
+    {
+      DiffAction::Remove,
+      "DEF",
+    },
+  };
+  EXPECT_EQ(result, Diff("ABCDEF", "ABC"));
 }
