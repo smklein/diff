@@ -191,3 +191,7 @@ std::vector<DiffResult> Diff(const std::string& lhs, const std::string& rhs) {
 
   return result;
 }
+
+bool operator==(const DiffResult& lhs, const DiffResult& rhs) {
+  return lhs.action == rhs.action && lhs.string == rhs.string;
+}

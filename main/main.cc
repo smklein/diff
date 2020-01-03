@@ -49,32 +49,17 @@ void PrintDiff(const std::string& a, const std::string& b) {
   std::cout << ">> to: " << std::endl;
   std::cout << Colorize(Color::Yellow, b) << std::endl;
 
-  // Coordinates:
-  for (auto [x, y] : path) {
-    std::cout << "(" << x << ", " << y << ")" << std::endl;
-  }
-
-  // Prettier diff:
-  int x_prev = 0;
-  int y_prev = 0;
-  for (auto [x, y] : path) {
-    while (x_prev < x && y_prev < y) {
-      assert(a[x_prev] == b[y_prev]);
-      std::string output;
-      output += a[x_prev];
-      std::cout << Colorize(Color::White, output);
-      x_prev++;
-      y_prev++;
-    }
-    while (x_prev < x) {
-      std::string output;
-      output += a[x_prev++];
-      std::cout << Colorize(Color::Red, output);
-    }
-    while (y_prev < y) {
-      std::string output;
-      output += b[y_prev++];
-      std::cout << Colorize(Color::Green, output);
+  for (auto [action, text] : path) {
+    switch (action) {
+    case DiffAction::Add:
+      std::cout << Colorize(Color::Green, text);
+      break;
+    case DiffAction::Remove:
+      std::cout << Colorize(Color::Red, text);
+      break;
+    case DiffAction::Same:
+      std::cout << Colorize(Color::White, text);
+      break;
     }
   }
   std::cout << std::endl;
