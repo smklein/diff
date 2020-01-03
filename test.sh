@@ -1,1 +1,1 @@
-bazel test //lib:diff-test --test_output=errors
+bazel test $(bazel query //...) --test_output=errors

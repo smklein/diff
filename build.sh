@@ -1,1 +1,1 @@
-bazel build //main:diff
+bazel build $(bazel query //...)
