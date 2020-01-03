@@ -11,34 +11,34 @@ dependendencies.
 
 Using bazel to build a specific target:
 
-$ bazel build //main:diff
+`$ bazel build //main:diff`
 
 Using bazel to build all targets:
 
-$ bazel build $(bazel query //...)
+`$ bazel build $(bazel query //...)`
 
 Shortcut to build everything:
 
-S ./build.sh
+`S ./build.sh`
 
 ## Testing
 
 Using bazel to test a specific target:
 
-$ bazel build //lib:difftest --test_output=errors
+`$ bazel build //lib:difftest --test_output=errors`
 
 Using bazel to build all targets:
 
-$ bazel test $(bazel query //...)
+`$ bazel test $(bazel query //...)`
 
 Shortcut to test everything:
 
-$ ./test.sh
+`$ ./test.sh`
 
 ## Running
 
-$ ./bazel-bin/main/diff
+`$ ./bazel-bin/main/diff`
 
 Shortcut to binary:
 
-$ ./run.sh
+`$ ./run.sh`
